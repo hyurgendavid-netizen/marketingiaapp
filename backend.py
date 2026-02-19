@@ -1,26 +1,32 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=".")
 CORS(app)
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-@app.route("/generar", methods=["POST"])
-def generar():
-    data = request.get_json()
-    idea = data.get("idea")
+# Ruta para mostrar el index.html
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
 
-    if not idea:
-        return jsonify({"error": "No se envió la idea"}), 400
+# Ruta para generar contenido
+@app.route("/generate", methods=["POST"])
+def generate():
+    data = request.get_json()
+    texto = data.get("texto")
+
+    if not texto:
+        return jsonify({"error": "No se envió texto"}), 400
 
     respuesta = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "Eres un experto en marketing digital y copywriting persuasivo."},
-            {"role": "user", "content": idea}
+            {"role": "user", "content": texto}
         ]
     )
 
