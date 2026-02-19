@@ -8,21 +8,24 @@ CORS(app)
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-@app.route("/generate", methods=["POST"])
-def generate():
-    data = request.json
+@app.route("/generar", methods=["POST"])
+def generar():
+    data = request.get_json()
     idea = data.get("idea")
 
-    response = client.chat.completions.create(
+    if not idea:
+        return jsonify({"error": "No se envió la idea"}), 400
+
+    respuesta = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "Eres un experto en marketing digital."},
+            {"role": "system", "content": "Eres un experto en marketing digital y copywriting persuasivo."},
             {"role": "user", "content": idea}
         ]
     )
 
     return jsonify({
-        "result": response.choices[0].message.content
+        "resultado": respuesta.choices[0].message.content
     })
 
 if __name__ == "__main__":
